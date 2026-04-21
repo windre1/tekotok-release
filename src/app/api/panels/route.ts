@@ -38,9 +38,11 @@ export async function PATCH(req: NextRequest) {
     const { panelId, ...updates } = await req.json()
     if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
 
+    const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
+
     const { data, error } = await supabase
       .from('panels')
-      .update(updates)
+      .update(panelUpdates)
       .eq('id', panelId)
       .eq('user_id', session.user.id)
       .select()
