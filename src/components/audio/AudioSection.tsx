@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function AudioSection({ project, script, onScriptChange }: Props) {
-  const [voice, setVoice] = useState<'female' | 'male'>(project.voice_gender ?? 'female')
+  const [voice, setVoice] = useState<'female' | 'male'>((project.voice_gender as any) ?? 'female')
   const [audioUrl, setAudioUrl] = useState(project.audio_url ?? '')
   const [generating, setGenerating] = useState(false)
   const [playing, setPlaying] = useState(false)
