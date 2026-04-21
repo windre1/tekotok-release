@@ -155,7 +155,6 @@ export default function AudioSection({ project, script, onScriptChange }: Props)
         <textarea
           value={script}
           onChange={e => onScriptChange(e.target.value)}
-          onBlur={saveScript}
           placeholder="Tulis naskah video kamu di sini... AI akan membacanya dengan suara yang dipilih."
           rows={5}
           className="w-full text-sm rounded-xl outline-none transition-all"
@@ -169,7 +168,10 @@ export default function AudioSection({ project, script, onScriptChange }: Props)
             resize: 'none',
           }}
           onFocus={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--cyan)'}
-          onBlur={e => (e.target as HTMLTextAreaElement).style.borderColor = 'var(--border)'}
+          onBlur={e => {
+            saveScript()
+            ;(e.target as HTMLTextAreaElement).style.borderColor = 'var(--border)'
+          }}
         />
 
         {/* Audio status */}
