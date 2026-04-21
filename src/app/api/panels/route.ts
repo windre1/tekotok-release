@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteClient } from '@/lib/supabase-server'
+import type { Database } from '@/types/supabase' // <- pastikan kamu buat file types/supabase.ts
 
 // GET panels by project
 export async function GET(req: NextRequest) {
@@ -38,10 +39,12 @@ export async function PATCH(req: NextRequest) {
     const { panelId, ...updates } = body
     if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
 
-    // Perbaikan tipe: cast updates sesuai partial record (opsional, tipe lebih aman)
+    // Cast updates ke tipe Supabase Update
+    const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
+
     const { data, error } = await supabase
       .from('panels')
-      .update(updates as Record<string, any>)
+      .update(panelUpdates)
       .eq('id', panelId)
       .eq('user_id', session.user.id)
       .select()
