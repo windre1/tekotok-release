@@ -3,7 +3,7 @@ import { createRouteClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase: any = createRouteClient()
+    const supabase = createRouteClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

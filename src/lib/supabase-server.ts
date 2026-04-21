@@ -4,10 +4,10 @@ import type { Database } from '@/types/database'
 
 // Fungsi untuk Server Components
 export const createServerClient = () => {
-  return createServerComponentClient<Database>({ cookies })
+  return createServerComponentClient<Database>({ cookies }) as any
 }
 
 // Fungsi untuk API Routes / Route Handlers
 export const createRouteClient = () => {
-  return createRouteHandlerClient<Database>({ cookies })
+  return createRouteHandlerClient<Database>({ cookies }) as any
 }
