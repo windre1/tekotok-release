@@ -5,7 +5,7 @@ import type { Database } from '@/types/database'
 // GET panels by project
 export async function GET(req: NextRequest) {
   try {
-    const supabase = createRouteClient()
+    const supabase: any = createRouteClient()
     const { data: { session }, error: authError } = await supabase.auth.getSession()
     if (authError || !session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 // PATCH (update) panel
 export async function PATCH(req: NextRequest) {
   try {
-    const supabase = createRouteClient()
+    const supabase: any = createRouteClient()
     const { data: { session }, error: authError } = await supabase.auth.getSession()
     if (authError || !session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -59,7 +59,7 @@ export async function PATCH(req: NextRequest) {
 // DELETE panel
 export async function DELETE(req: NextRequest) {
   try {
-    const supabase = createRouteClient()
+    const supabase: any = createRouteClient()
     const { data: { session }, error: authError } = await supabase.auth.getSession()
     if (authError || !session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 

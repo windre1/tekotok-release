@@ -29,7 +29,7 @@ function pcmToWav(pcmData: ArrayBuffer, sampleRate: number): ArrayBuffer {
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createRouteClient()
+    const supabase: any = createRouteClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -105,12 +105,12 @@ export async function POST(req: NextRequest) {
     const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName)
 
     await supabase
-      .from('projects' as any)
+      .from('projects')
       .update({ audio_url: publicUrl, voice_gender: voice, script, stage: 'audio' })
       .eq('id', projectId)
 
     await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .update({ credits: profile.credits - 2 })
       .eq('id', session.user.id)
 

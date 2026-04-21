@@ -3,7 +3,7 @@ import { createRouteClient } from '@/lib/supabase-server'
 
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createRouteClient()
+    const supabase: any = createRouteClient()
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .select('credits')
       .eq('id', session.user.id)
       .single()
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       : { image_url_b: publicUrl, prompt_b: prompt }
 
     const { data: updatedPanel, error: updateError } = await supabase
-      .from('panels' as any)
+      .from('panels')
       .update(updateData)
       .eq('id', panelId)
       .select()
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (updateError) throw updateError
 
     await supabase
-      .from('profiles' as any)
+      .from('profiles')
       .update({ credits: profile.credits - 1 })
       .eq('id', session.user.id)
 
