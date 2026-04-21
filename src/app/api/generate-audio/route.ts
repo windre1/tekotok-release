@@ -105,12 +105,12 @@ export async function POST(req: NextRequest) {
     const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName)
 
     await supabase
-      .from('projects')
+      .from('projects' as any)
       .update({ audio_url: publicUrl, voice_gender: voice, script, stage: 'audio' })
       .eq('id', projectId)
 
     await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .update({ credits: profile.credits - 2 })
       .eq('id', session.user.id)
 

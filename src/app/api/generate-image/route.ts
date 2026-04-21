@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { data: profileData, error: profileError } = await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .select('credits')
       .eq('id', session.user.id)
       .single()
@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       : { image_url_b: publicUrl, prompt_b: prompt }
 
     const { data: updatedPanel, error: updateError } = await supabase
-      .from('panels')
+      .from('panels' as any)
       .update(updateData)
       .eq('id', panelId)
       .select()
@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     if (updateError) throw updateError
 
     await supabase
-      .from('profiles')
+      .from('profiles' as any)
       .update({ credits: profile.credits - 1 })
       .eq('id', session.user.id)
 
