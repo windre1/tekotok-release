@@ -42,6 +42,7 @@ export async function PATCH(req: NextRequest) {
 
     const { data, error } = await supabase
       .from('panels' as any)
+      // @ts-ignore
       .update(panelUpdates)
       .eq('id', panelId)
       .eq('user_id', session.user.id)
