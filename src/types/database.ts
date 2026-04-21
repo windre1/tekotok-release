@@ -15,7 +15,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           avatar_url: string | null
-          plan: 'free' | 'pro' | 'enterprise'
+          plan: string
           credits: number
           created_at: string
           updated_at: string
@@ -25,7 +25,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           avatar_url?: string | null
-          plan?: 'free' | 'pro' | 'enterprise'
+          plan?: string
           credits?: number
           created_at?: string
           updated_at?: string
@@ -35,20 +35,12 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           avatar_url?: string | null
-          plan?: 'free' | 'pro' | 'enterprise'
+          plan?: string
           credits?: number
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_id_fkey"
-            columns: ["id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       projects: {
         Row: {
@@ -57,25 +49,25 @@ export type Database = {
           title: string
           topic: string | null
           script: string | null
-          voice_gender: 'female' | 'male'
+          voice_gender: string
           audio_url: string | null
           audio_duration: number | null
-          stage: 'script' | 'visual' | 'audio' | 'done'
-          status: 'active' | 'archived'
+          stage: string
+          status: string
           created_at: string
           updated_at: string
         }
         Insert: {
           id?: string
           user_id: string
-          title: string
+          title?: string
           topic?: string | null
           script?: string | null
-          voice_gender?: 'female' | 'male'
+          voice_gender?: string
           audio_url?: string | null
           audio_duration?: number | null
-          stage?: 'script' | 'visual' | 'audio' | 'done'
-          status?: 'active' | 'archived'
+          stage?: string
+          status?: string
           created_at?: string
           updated_at?: string
         }
@@ -85,23 +77,15 @@ export type Database = {
           title?: string
           topic?: string | null
           script?: string | null
-          voice_gender?: 'female' | 'male'
+          voice_gender?: string
           audio_url?: string | null
           audio_duration?: number | null
-          stage?: 'script' | 'visual' | 'audio' | 'done'
-          status?: 'active' | 'archived'
+          stage?: string
+          status?: string
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "projects_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
       panels: {
         Row: {
@@ -152,15 +136,7 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "panels_project_id_fkey"
-            columns: ["project_id"]
-            isOneToOne: false
-            referencedRelation: "projects"
-            referencedColumns: ["id"]
-          }
-        ]
+        Relationships: []
       }
     }
     Views: {
@@ -172,38 +148,9 @@ export type Database = {
     Enums: {
       [_ in never]: never
     }
-    CompositeTypes: {
-      [_ in never]: never
-    }
   }
 }
 
-export type Tables<
-  PublicTableNameOrOptions extends
-    | keyof (Database["public"]["Tables"] & Database["public"]["Views"])
-    | { schema: keyof Database },
-  TableName extends PublicTableNameOrOptions extends { schema: keyof Database }
-    ? keyof (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-        Database[PublicTableNameOrOptions["schema"]]["Views"])
-    : never = never
-> = PublicTableNameOrOptions extends { schema: keyof Database }
-  ? (Database[PublicTableNameOrOptions["schema"]]["Tables"] &
-      Database[PublicTableNameOrOptions["schema"]]["Views"])[TableName] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : PublicTableNameOrOptions extends keyof (Database["public"]["Tables"] &
-      Database["public"]["Views"])
-  ? (Database["public"]["Tables"] &
-      Database["public"]["Views"])[PublicTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
-    : never
-  : never
-
-// Convenience types
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Project = Database['public']['Tables']['projects']['Row']
 export type Panel = Database['public']['Tables']['panels']['Row']
