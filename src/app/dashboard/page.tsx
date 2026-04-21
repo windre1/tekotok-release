@@ -54,7 +54,7 @@ export default async function DashboardPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {projects.map(project => (
+          {projects.map((project: any) => (
             <ProjectCard key={project.id} project={project} />
           ))}
         </div>

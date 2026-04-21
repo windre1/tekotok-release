@@ -11,10 +11,10 @@ export default async function LibraryPage() {
     .from('projects')
     .select('*')
     .eq('user_id', session!.user.id)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }) as any
 
-  const active = projects?.filter(p => p.status === 'active') ?? []
-  const archived = projects?.filter(p => p.status === 'archived') ?? []
+  const active = projects?.filter((p: any) => p.status === 'active') ?? []
+  const archived = projects?.filter((p: any) => p.status === 'archived') ?? []
 
   return (
     <div className="px-4 py-4">
@@ -30,7 +30,7 @@ export default async function LibraryPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            {active.map(p => (
+            {active.map((p: any) => (
               <Link key={p.id} href={`/dashboard/${p.id}`}>
                 <div className="flex items-center gap-3 p-3 rounded-xl transition-all"
                   style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
@@ -57,7 +57,7 @@ export default async function LibraryPage() {
             ARSIP ({archived.length})
           </div>
           <div className="space-y-2">
-            {archived.map(p => (
+            {archived.map((p: any) => (
               <div key={p.id} className="flex items-center gap-3 p-3 rounded-xl opacity-50"
                 style={{ background: 'var(--card)', border: '1px solid var(--border)' }}>
                 <div className="text-2xl">📦</div>
