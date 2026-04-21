@@ -1,4 +1,3 @@
-// src/types/supabase.ts
 export type Database = {
   public: {
     Tables: {

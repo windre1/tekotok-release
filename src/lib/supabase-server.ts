@@ -1,10 +1,9 @@
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs'
-import { cookies } from 'next/headers'
-import type { Database } from '@/types/database'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/supabase'
 
-export const createServerClient = () =>
-  createServerComponentClient<Database>({ cookies })
-
-export const createRouteClient = () =>
-  createRouteHandlerClient<Database>({ cookies })
+export const createRouteClient = () => {
+  return createClient<Database>(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_ANON_KEY!
+  )
+}

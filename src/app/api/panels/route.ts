@@ -40,15 +40,15 @@ export async function PATCH(req: NextRequest) {
     if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
 
     // Cast updates ke tipe Supabase Update
-    const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
+   const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
 
-    const { data, error } = await supabase
-      .from('panels')
-      .update(panelUpdates)
-      .eq('id', panelId)
-      .eq('user_id', session.user.id)
-      .select()
-      .single()
+const { data, error } = await supabase
+  .from('panels')
+  .update(panelUpdates) // Sekarang TypeScript tidak error
+  .eq('id', panelId)
+  .eq('user_id', session.user.id)
+  .select()
+  .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
