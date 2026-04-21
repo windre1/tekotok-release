@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
     if (!projectId) return NextResponse.json({ error: 'Missing projectId' }, { status: 400 })
 
     const { data, error } = await supabase
-      .from('panels' as any)
+      .from('panels')
       .select('*')
       .eq('project_id', projectId)
       .eq('user_id', session.user.id)
@@ -41,8 +41,7 @@ export async function PATCH(req: NextRequest) {
     const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
 
     const { data, error } = await supabase
-      .from('panels' as any)
-      // @ts-ignore
+      .from('panels')
       .update(panelUpdates)
       .eq('id', panelId)
       .eq('user_id', session.user.id)
@@ -69,7 +68,7 @@ export async function DELETE(req: NextRequest) {
     if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
 
     const { error } = await supabase
-      .from('panels' as any)
+      .from('panels')
       .delete()
       .eq('id', panelId)
       .eq('user_id', session.user.id)
