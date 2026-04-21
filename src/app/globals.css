@@ -1,0 +1,72 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --pink: #FF4FA3;
+  --cyan: #00D4FF;
+  --dark: #0D0F1A;
+  --card: #161826;
+  --card2: #1E2138;
+  --border: #2A2E4A;
+  --muted: #8890BB;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--dark);
+  color: #F0F2FF;
+  font-family: 'Space Grotesk', sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--dark); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* Gradient text utility */
+.gradient-text {
+  background: linear-gradient(90deg, var(--pink), var(--cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card glass */
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+}
+
+/* Pulse animation */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Safe area for mobile */
+.pb-safe {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}

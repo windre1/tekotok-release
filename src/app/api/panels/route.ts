@@ -1,0 +1,61 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createRouteClient } from '@/lib/supabase-server'
+
+export async function GET(req: NextRequest) {
+  const supabase = createRouteClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const projectId = searchParams.get('projectId')
+  if (!projectId) return NextResponse.json({ error: 'Missing projectId' }, { status: 400 })
+
+  const { data, error } = await supabase
+    .from('panels')
+    .select('*')
+    .eq('project_id', projectId)
+    .eq('user_id', session.user.id)
+    .order('panel_number')
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ panels: data })
+}
+
+export async function PATCH(req: NextRequest) {
+  const supabase = createRouteClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const body = await req.json()
+  const { panelId, ...updates } = body
+
+  const { data, error } = await supabase
+    .from('panels')
+    .update(updates)
+    .eq('id', panelId)
+    .eq('user_id', session.user.id)
+    .select()
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ panel: data })
+}
+
+export async function DELETE(req: NextRequest) {
+  const supabase = createRouteClient()
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const { searchParams } = new URL(req.url)
+  const panelId = searchParams.get('panelId')
+  if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
+
+  const { error } = await supabase
+    .from('panels')
+    .delete()
+    .eq('id', panelId)
+    .eq('user_id', session.user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ success: true })
+}
