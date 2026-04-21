@@ -35,20 +35,16 @@ export async function PATCH(req: NextRequest) {
     const { data: { session }, error: authError } = await supabase.auth.getSession()
     if (authError || !session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const body = await req.json()
-    const { panelId, ...updates } = body
+    const { panelId, ...updates } = await req.json()
     if (!panelId) return NextResponse.json({ error: 'Missing panelId' }, { status: 400 })
 
-    // Cast updates ke tipe Supabase Update
-   const panelUpdates: Database['public']['Tables']['panels']['Update'] = updates
-
-const { data, error } = await supabase
-  .from('panels')
-  .update(panelUpdates) // Sekarang TypeScript tidak error
-  .eq('id', panelId)
-  .eq('user_id', session.user.id)
-  .select()
-  .single()
+    const { data, error } = await supabase
+      .from('panels')
+      .update(updates)
+      .eq('id', panelId)
+      .eq('user_id', session.user.id)
+      .select()
+      .single()
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
