@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteClient } from '@/lib/supabase-server'
-import type { Database } from '@/types/supabase' // <- pastikan kamu buat file types/supabase.ts
+import type { Database } from '@/types/database'
 
 // GET panels by project
 export async function GET(req: NextRequest) {

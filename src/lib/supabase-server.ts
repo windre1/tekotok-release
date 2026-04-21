@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/supabase'
+import type { Database } from '@/types/database'
 
 export const createRouteClient = () => {
   return createClient<Database>(
@@ -7,3 +7,5 @@ export const createRouteClient = () => {
     process.env.SUPABASE_ANON_KEY!
   )
 }
+
+export const createServerClient = createRouteClient
