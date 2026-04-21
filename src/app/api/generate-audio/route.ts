@@ -1,10 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createRouteClient } from '@/lib/supabase-server'
 
-const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY!
-const VOICE_IDS = {
-  female: process.env.ELEVENLABS_VOICE_ID_FEMALE ?? 'EXAVITQu4vr4xnSDxMaL',
-  male: process.env.ELEVENLABS_VOICE_ID_MALE ?? 'VR6AewLTigWG4xSOukaG',
+// ── Voice map Gemini TTS ─────────────────────────────────────────────
+// Gemini 2.5 Flash Preview TTS — gratis, multilingual, support Bahasa Indonesia
+const VOICE_MAP = {
+  female: 'Zephyr',   // suara perempuan natural
+  male:   'Puck',     // suara laki-laki natural
+}
+
+// Convert PCM raw audio → WAV Blob-compatible ArrayBuffer
+function pcmToWav(pcmData: ArrayBuffer, sampleRate: number): ArrayBuffer {
+  const numChannels = 1
+  const bitsPerSample = 16
+  const blockAlign = (numChannels * bitsPerSample) / 8
+  const byteRate = sampleRate * blockAlign
+  const dataSize = pcmData.byteLength
+  const buffer = new ArrayBuffer(44 + dataSize)
+  const view = new DataView(buffer)
+
+  const writeStr = (offset: number, str: string) => {
+    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i))
+  }
+
+  writeStr(0, 'RIFF')
+  view.setUint32(4, 36 + dataSize, true)
+  writeStr(8, 'WAVE')
+  writeStr(12, 'fmt ')
+  view.setUint32(16, 16, true)
+  view.setUint16(20, 1, true)
+  view.setUint16(22, numChannels, true)
+  view.setUint32(24, sampleRate, true)
+  view.setUint32(28, byteRate, true)
+  view.setUint16(32, blockAlign, true)
+  view.setUint16(34, bitsPerSample, true)
+  writeStr(36, 'data')
+  view.setUint32(40, dataSize, true)
+  new Uint8Array(buffer).set(new Uint8Array(pcmData), 44)
+  return buffer
 }
 
 export async function POST(req: NextRequest) {
@@ -17,10 +49,10 @@ export async function POST(req: NextRequest) {
     const { script, voice = 'female', projectId } = body
 
     if (!script || !projectId) {
-      return NextResponse.json({ error: 'Missing script or projectId' }, { status: 400 })
+      return NextResponse.json({ error: 'Script dan projectId wajib diisi' }, { status: 400 })
     }
 
-    // Check credits (audio costs 2 credits)
+    // Check credits (audio = 2 credits)
     const { data: profile } = await supabase
       .from('profiles')
       .select('credits')
@@ -28,49 +60,69 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!profile || profile.credits < 2) {
-      return NextResponse.json({ error: 'Kredit tidak cukup! Butuh 2 kredit untuk audio.' }, { status: 402 })
+      return NextResponse.json({ error: 'Kredit tidak cukup (butuh 2 kredit untuk audio)' }, { status: 402 })
     }
 
-    const voiceId = VOICE_IDS[voice as keyof typeof VOICE_IDS] ?? VOICE_IDS.female
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey) throw new Error('GEMINI_API_KEY belum dikonfigurasi')
 
-    // Call ElevenLabs TTS API
-    const elevenRes = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
-      method: 'POST',
-      headers: {
-        'xi-api-key': ELEVENLABS_API_KEY,
-        'Content-Type': 'application/json',
-        Accept: 'audio/mpeg',
-      },
-      body: JSON.stringify({
-        text: script,
-        model_id: 'eleven_multilingual_v2',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.8,
-          style: 0.2,
-          use_speaker_boost: true,
-        },
-      }),
-    })
+    const voiceName = VOICE_MAP[voice as keyof typeof VOICE_MAP] ?? VOICE_MAP.female
 
-    if (!elevenRes.ok) {
-      const errText = await elevenRes.text()
-      throw new Error(`ElevenLabs error: ${errText}`)
+    // ── Gemini TTS API ───────────────────────────────────────────────
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'gemini-2.5-flash-preview-tts',
+          contents: [{ parts: [{ text: script }] }],
+          generationConfig: {
+            responseModalities: ['AUDIO'],
+            speechConfig: {
+              voiceConfig: {
+                prebuiltVoiceConfig: { voiceName },
+              },
+            },
+          },
+        }),
+      }
+    )
+
+    if (!geminiRes.ok) {
+      const err = await geminiRes.json()
+      if (geminiRes.status === 429) throw new Error('Rate limit Gemini. Coba lagi dalam beberapa detik.')
+      throw new Error(err.error?.message ?? `Gemini TTS error ${geminiRes.status}`)
     }
 
-    const audioBuffer = await elevenRes.arrayBuffer()
-    const fileName = `${session.user.id}/${projectId}/audio-${Date.now()}.mp3`
+    const geminiData = await geminiRes.json()
+    const part = geminiData?.candidates?.[0]?.content?.parts?.[0]
 
-    // Upload to Supabase Storage
+    if (!part?.inlineData?.data) {
+      throw new Error('Tidak ada data audio dari Gemini TTS')
+    }
+
+    // Decode base64 PCM → WAV
+    const sampleRate = parseInt(
+      part.inlineData.mimeType?.match(/rate=(\d+)/)?.[1] ?? '24000',
+      10
+    )
+    const binaryStr = atob(part.inlineData.data)
+    const pcmBytes = new Uint8Array(binaryStr.length)
+    for (let i = 0; i < binaryStr.length; i++) pcmBytes[i] = binaryStr.charCodeAt(i)
+    const wavBuffer = pcmToWav(pcmBytes.buffer, sampleRate)
+
+    // Upload WAV ke Supabase Storage
+    const fileName = `${session.user.id}/${projectId}/audio-${Date.now()}.wav`
     const { error: uploadError } = await supabase.storage
       .from('audio')
-      .upload(fileName, audioBuffer, { contentType: 'audio/mpeg', upsert: true })
+      .upload(fileName, wavBuffer, { contentType: 'audio/wav', upsert: true })
 
     if (uploadError) throw uploadError
 
     const { data: { publicUrl } } = supabase.storage.from('audio').getPublicUrl(fileName)
 
-    // Update project with audio URL and voice
+    // Update project record
     await supabase
       .from('projects')
       .update({ audio_url: publicUrl, voice_gender: voice, script, stage: 'audio' })
@@ -83,8 +135,9 @@ export async function POST(req: NextRequest) {
       .eq('id', session.user.id)
 
     return NextResponse.json({ audioUrl: publicUrl })
+
   } catch (err: any) {
-    console.error('Generate audio error:', err)
+    console.error('generate-audio error:', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
   }
 }

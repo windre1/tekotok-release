@@ -1,191 +1,92 @@
-# ViralKit 🎬
+# ViralKit — Updated API Stack 🎬
 
-AI-powered SaaS untuk generate konten video viral — A/B image pairs + voiceover otomatis.
-
-Built with: **Next.js 14** · **Supabase** · **Replicate** · **ElevenLabs** · **Vercel**
+> **Update:** Replicate → **Fal.ai (FLUX)** | ElevenLabs → **Gemini TTS**
+> Sekarang 100% bisa jalan dengan kredit gratis!
 
 ---
 
-## 🚀 Quick Start
+## 🆕 Yang Berubah
 
-### 1. Clone & Install
+| Sebelumnya | Sekarang | Kenapa |
+|---|---|---|
+| Replicate (berbayar) | **Fal.ai FLUX** | $10 kredit gratis saat daftar |
+| ElevenLabs (limit 10rb karakter) | **Gemini TTS** | Gratis, limit besar, kualitas bagus |
+
+---
+
+## Environment Variables (Vercel)
+
+Tambahkan ini di **Vercel Dashboard → Settings → Environment Variables**:
+
+| Name | Value | Cara Dapat |
+|---|---|---|
+| `NEXT_PUBLIC_SUPABASE_URL` | `https://xxx.supabase.co` | Supabase → Settings → API → Project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | `eyJhbGc...` | Supabase → Settings → API → **anon public** |
+| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGc...` | Supabase → Settings → API → **service_role** |
+| `FAL_API_KEY` | `fal-xxx...` | fal.ai → Dashboard → API Keys |
+| `GEMINI_API_KEY` | `AIzaSy...` | aistudio.google.com/app/apikey |
+
+✅ **Hanya 5 env vars!** Tidak perlu ElevenLabs lagi.
+
+---
+
+## Cara Dapat API Keys
+
+### Fal.ai (untuk generate gambar)
+1. Buka **fal.ai** → Sign Up (gratis, dapat $10 kredit)
+2. Masuk ke **Dashboard** → klik **API Keys** di sidebar
+3. Klik **"Add Key"** → beri nama → copy key
+4. Key formatnya: `fal-xxxxxxxxxxxxxxxxxxxxxxxx`
+
+### Gemini (untuk audio TTS)
+1. Buka **aistudio.google.com/app/apikey**
+2. Login dengan akun Google
+3. Klik **"Create API Key"**
+4. Key formatnya: `AIzaSyXXXXXXXXXXXXXX`
+
+### Supabase
+1. Buka **supabase.com** → pilih project
+2. Sidebar → **Settings** → **API**
+3. Copy **Project URL**, **anon key**, **service_role key**
+
+---
+
+## Deploy ke Vercel
 
 ```bash
-git clone https://github.com/kamu/viralkit.git
-cd viralkit
-npm install
-```
+# 1. Push ke GitHub
+git add .
+git commit -m "update: fal.ai + gemini tts"
+git push
 
-### 2. Setup Environment Variables
-
-```bash
-cp .env.example .env.local
-```
-
-Isi semua value di `.env.local`:
-
-| Variable | Cara Dapat |
-|---|---|
-| `NEXT_PUBLIC_SUPABASE_URL` | Dashboard Supabase → Settings → API |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Dashboard Supabase → Settings → API |
-| `SUPABASE_SERVICE_ROLE_KEY` | Dashboard Supabase → Settings → API |
-| `REPLICATE_API_TOKEN` | https://replicate.com/account/api-tokens |
-| `ELEVENLABS_API_KEY` | https://elevenlabs.io/app/settings/api-keys |
-| `ELEVENLABS_VOICE_ID_FEMALE` | https://api.elevenlabs.io/v1/voices |
-| `ELEVENLABS_VOICE_ID_MALE` | https://api.elevenlabs.io/v1/voices |
-
-### 3. Setup Supabase Database
-
-1. Buka [Supabase Dashboard](https://supabase.com/dashboard)
-2. Buat project baru
-3. Buka **SQL Editor**
-4. Copy-paste isi file `supabase/schema.sql` → Run
-
-### 4. Jalankan Lokal
-
-```bash
-npm run dev
-```
-
-Buka http://localhost:3000
-
----
-
-## 🏗️ Struktur Project
-
-```
-viralkit/
-├── src/
-│   ├── app/
-│   │   ├── auth/
-│   │   │   ├── login/page.tsx        # Login page
-│   │   │   └── register/page.tsx     # Register page
-│   │   ├── dashboard/
-│   │   │   ├── page.tsx              # Dashboard utama
-│   │   │   ├── layout.tsx            # Layout dengan nav
-│   │   │   ├── [id]/page.tsx         # Project studio
-│   │   │   ├── new/page.tsx          # Buat project baru
-│   │   │   └── library/page.tsx      # Library semua project
-│   │   ├── api/
-│   │   │   ├── generate-image/       # Replicate SDXL API
-│   │   │   ├── generate-audio/       # ElevenLabs TTS API
-│   │   │   ├── panels/               # Panel CRUD
-│   │   │   └── projects/             # Project CRUD
-│   │   ├── layout.tsx                # Root layout
-│   │   └── globals.css               # Global styles
-│   ├── components/
-│   │   ├── layout/
-│   │   │   ├── TopNav.tsx            # Header dengan credits
-│   │   │   └── BottomNav.tsx         # Mobile bottom navigation
-│   │   ├── panels/
-│   │   │   ├── ProjectStudio.tsx     # Main studio component
-│   │   │   ├── PanelCard.tsx         # A/B image panel
-│   │   │   ├── ProjectCard.tsx       # Project list card
-│   │   │   └── NewProjectButton.tsx  # CTA button
-│   │   └── audio/
-│   │       └── AudioSection.tsx      # Global audio player/generator
-│   ├── lib/
-│   │   ├── supabase.ts               # Client-side Supabase
-│   │   ├── supabase-server.ts        # Server-side Supabase
-│   │   └── utils.ts                  # Helper functions
-│   ├── types/
-│   │   └── database.ts               # TypeScript types
-│   └── middleware.ts                 # Auth middleware
-├── supabase/
-│   └── schema.sql                    # Database schema + RLS
-├── public/
-│   └── manifest.json                 # PWA manifest
-├── .env.example                      # Template env vars
-├── vercel.json                       # Vercel config
-└── README.md
+# 2. Di Vercel dashboard:
+# Settings → Environment Variables → tambah 5 vars di atas
+# Deployments → Redeploy
 ```
 
 ---
 
-## 🔌 AI Integrations
+## File yang Diupdate
 
-### Replicate (Image Generation)
-Model: `stability-ai/sdxl` — generates cinematic diorama images  
-Cost: ~$0.003 per image  
-Prompt auto-enhanced dengan: diorama miniature, tilt-shift, cinematic lighting
-
-### ElevenLabs (Audio TTS)
-Model: `eleven_multilingual_v2` — supports Bahasa Indonesia  
-Cost: ~$0.30 per 1000 characters  
-Supports: Female & Male voice selection
-
----
-
-## 🚢 Deploy ke Vercel
-
-### Option A — Vercel CLI
-
-```bash
-npm i -g vercel
-vercel
 ```
+src/app/api/
+├── generate-image/route.ts   ← Fal.ai FLUX (ganti Replicate)
+└── generate-audio/route.ts   ← Gemini TTS (ganti ElevenLabs)
 
-### Option B — GitHub Integration
-
-1. Push ke GitHub
-2. Import repo di https://vercel.com/new
-3. Set environment variables di Vercel dashboard
-4. Deploy!
-
-### Set Environment Variables di Vercel
-
-```bash
-vercel env add NEXT_PUBLIC_SUPABASE_URL
-vercel env add NEXT_PUBLIC_SUPABASE_ANON_KEY
-vercel env add SUPABASE_SERVICE_ROLE_KEY
-vercel env add REPLICATE_API_TOKEN
-vercel env add ELEVENLABS_API_KEY
-vercel env add ELEVENLABS_VOICE_ID_FEMALE
-vercel env add ELEVENLABS_VOICE_ID_MALE
+.env.example                  ← hanya 5 vars, lebih simple
+vercel.json                   ← hapus bagian "env" yang error
+package.json                  ← hapus replicate & elevenlabs deps
 ```
 
 ---
 
-## 💰 Credit System
+## Estimasi Biaya
 
-| Aksi | Kredit |
-|---|---|
-| Generate image (1 panel 1 sisi) | 1 kredit |
-| Generate audio | 2 kredit |
-| Registrasi | 10 kredit gratis |
+| Layanan | Harga | Kredit Gratis |
+|---|---|---|
+| **Fal.ai FLUX** | ~$0.003/gambar | $10 = ~3.300 gambar |
+| **Gemini TTS** | Gratis | 15 RPM free tier |
+| **Supabase** | Gratis | 500MB storage + 2GB bandwidth |
+| **Vercel** | Gratis | Hobby plan |
 
----
-
-## 📱 Fitur
-
-- ✅ Auth (Login/Register) dengan Supabase
-- ✅ Dashboard project management
-- ✅ A/B image panel (Setup vs Klimaks)
-- ✅ AI image generation (Replicate SDXL)
-- ✅ AI voiceover (ElevenLabs TTS)
-- ✅ Female/Male voice toggle
-- ✅ Download image & audio
-- ✅ Copy prompt per panel
-- ✅ Credit system
-- ✅ Mobile-first responsive UI
-- ✅ PWA ready
-- ✅ Row Level Security (Supabase RLS)
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend**: Next.js 14 App Router + TypeScript
-- **Styling**: Tailwind CSS + custom design system
-- **Auth**: Supabase Auth
-- **Database**: Supabase PostgreSQL + RLS
-- **Storage**: Supabase Storage
-- **AI Image**: Replicate (SDXL)
-- **AI Audio**: ElevenLabs
-- **Deploy**: Vercel
-
----
-
-## 📞 Support
-
-Ada pertanyaan? Buka issue di GitHub atau hubungi tim kami.
+**Total: ~$0 untuk memulai!** 🎉

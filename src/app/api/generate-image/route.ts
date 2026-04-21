@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import Replicate from 'replicate'
 import { createRouteClient } from '@/lib/supabase-server'
-
-const replicate = new Replicate({ auth: process.env.REPLICATE_API_TOKEN! })
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,31 +22,38 @@ export async function POST(req: NextRequest) {
       .single()
 
     if (!profile || profile.credits < 1) {
-      return NextResponse.json({ error: 'Kredit habis! Upgrade plan kamu.' }, { status: 402 })
+      return NextResponse.json({ error: 'Kredit habis! Silakan upgrade plan.' }, { status: 402 })
     }
 
-    // Enhanced cinematic prompt
-    const enhancedPrompt = `${prompt}, diorama miniature, tilt-shift photography, cinematic lighting, ultra detailed, 8k, photorealistic, shallow depth of field, golden hour, epic composition`
+    // Enhanced cinematic prompt for diorama style
+    const enhancedPrompt = `${prompt}, diorama miniature photography, tilt-shift lens effect, cinematic lighting, ultra detailed, 8k resolution, photorealistic, shallow depth of field, golden hour lighting, epic composition, professional photography`
 
-    // Generate with Replicate (SDXL)
-    const output = await replicate.run(
-      'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
-      {
-        input: {
-          prompt: enhancedPrompt,
-          negative_prompt: 'blurry, low quality, text, watermark, signature, ugly, deformed',
-          width: 768,
-          height: 1024,
-          num_inference_steps: 25,
-          guidance_scale: 7.5,
-        },
-      }
-    ) as string[]
+    // ── Fal.ai FLUX API ──────────────────────────────────────────────
+    const falResponse = await fetch('https://fal.run/fal-ai/flux/schnell', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Key ${process.env.FAL_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: enhancedPrompt,
+        image_size: 'portrait_4_3',   // 768x1024 — cocok untuk panel
+        num_inference_steps: 4,        // schnell model, cepat
+        num_images: 1,
+        enable_safety_checker: true,
+      }),
+    })
 
-    const imageUrl = output[0]
-    if (!imageUrl) throw new Error('No image generated')
+    if (!falResponse.ok) {
+      const err = await falResponse.json()
+      throw new Error(err.detail ?? `Fal.ai error ${falResponse.status}`)
+    }
 
-    // Download and upload to Supabase Storage
+    const falData = await falResponse.json()
+    const imageUrl = falData.images?.[0]?.url
+    if (!imageUrl) throw new Error('Tidak ada gambar yang dihasilkan')
+
+    // Download gambar dari Fal.ai lalu upload ke Supabase Storage
     const imageRes = await fetch(imageUrl)
     const imageBuffer = await imageRes.arrayBuffer()
     const fileName = `${session.user.id}/${projectId}/${panelId}-${side}-${Date.now()}.png`
@@ -62,7 +66,7 @@ export async function POST(req: NextRequest) {
 
     const { data: { publicUrl } } = supabase.storage.from('images').getPublicUrl(fileName)
 
-    // Update panel in DB
+    // Update panel record
     const updateData = side === 'a'
       ? { image_url_a: publicUrl, prompt_a: prompt }
       : { image_url_b: publicUrl, prompt_b: prompt }
@@ -76,15 +80,16 @@ export async function POST(req: NextRequest) {
 
     if (updateError) throw updateError
 
-    // Deduct credit
+    // Deduct 1 credit
     await supabase
       .from('profiles')
       .update({ credits: profile.credits - 1 })
       .eq('id', session.user.id)
 
     return NextResponse.json({ imageUrl: publicUrl, panel: updatedPanel })
+
   } catch (err: any) {
-    console.error('Generate image error:', err)
+    console.error('generate-image error:', err)
     return NextResponse.json({ error: err.message || 'Internal server error' }, { status: 500 })
   }
 }
