@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase-server'
 import ProjectStudio from '@/components/panels/ProjectStudio'
 
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: { id: string }
 }

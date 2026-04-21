@@ -1,6 +1,8 @@
 import { createServerClient } from '@/lib/supabase-server'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LibraryPage() {
   const supabase = createServerClient()
   const { data: { session } } = await supabase.auth.getSession()

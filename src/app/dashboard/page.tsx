@@ -2,6 +2,8 @@ import { createServerClient } from '@/lib/supabase-server'
 import ProjectCard from '@/components/panels/ProjectCard'
 import NewProjectButton from '@/components/panels/NewProjectButton'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const supabase = createServerClient()
   const { data: { session } } = await supabase.auth.getSession()
